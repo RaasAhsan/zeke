@@ -16,6 +16,11 @@ public abstract class AddNode extends ZekeNode {
         return left + right;
     }
 
+    @Specialization
+    protected String addStrings(String left, String right) {
+        return left + right;
+    }
+
     @Fallback
     protected void typeError(Object left, Object right) {
         throw new RuntimeException("type error");
