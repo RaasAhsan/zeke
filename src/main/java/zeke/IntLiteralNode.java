@@ -1,8 +1,8 @@
-package tera;
+package zeke;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public final class IntLiteralNode extends TeraNode {
+public final class IntLiteralNode extends ZekeNode {
     public final int value;
 
     public IntLiteralNode(int value) {

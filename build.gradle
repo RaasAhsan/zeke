@@ -22,7 +22,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'tera.App'
+    mainClass = 'zeke.App'
     applicationDefaultJvmArgs = [
         '-XX:-UseJVMCIClassLoader'
     ]
@@ -39,6 +39,6 @@ task uberJar(type: Jar) {
     }
 
     manifest {
-        attributes["Main-Class"] = "tera.App"
+        attributes["Main-Class"] = "zeke.App"
     }
 }

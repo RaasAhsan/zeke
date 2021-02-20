@@ -1,12 +1,12 @@
-package tera;
+package zeke;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 
-public final class TeraRootNode extends RootNode {
-    private @Child TeraNode root;
+public final class ZekeRootNode extends RootNode {
+    private @Child ZekeNode root;
 
-    public TeraRootNode(TeraNode root) {
+    public ZekeRootNode(ZekeNode root) {
         super(null);
         this.root = root;
     }

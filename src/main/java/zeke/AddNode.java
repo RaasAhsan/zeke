@@ -1,4 +1,4 @@
-package tera;
+package zeke;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -6,8 +6,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 @NodeChild("left")
 @NodeChild("right")
-public abstract class AddNode extends TeraNode {
-    public static AddNode create(TeraNode left, TeraNode right) {
+public abstract class AddNode extends ZekeNode {
+    public static AddNode create(ZekeNode left, ZekeNode right) {
         return AddNodeGen.create(left, right);
     }
 
