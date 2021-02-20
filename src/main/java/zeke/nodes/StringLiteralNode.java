@@ -2,10 +2,10 @@ package zeke.nodes;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public final class IntLiteralNode extends ExpressionNode {
-    public final int value;
+public final class StringLiteralNode extends ExpressionNode {
+    public final String value;
 
-    public IntLiteralNode(int value) {
+    public StringLiteralNode(String value) {
         this.value = value;
     }
 

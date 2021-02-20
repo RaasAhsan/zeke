@@ -2,16 +2,18 @@ package zeke;
 
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.CallTarget;
-import zeke.nodes.AddNode;
-import zeke.nodes.IntLiteralNode;
-import zeke.nodes.StringLiteralNode;
-import zeke.nodes.ZekeRootNode;
+import zeke.nodes.*;
 
 public class Entrypoint {
     public static void main(String[] args) {
-        AddNode add = AddNode.create(new StringLiteralNode("hello"), new StringLiteralNode("world"));
+        AddNode add = AddNode.of(new StringLiteralNode("hello"), new StringLiteralNode("world"));
+        IfNode ifNode = new IfNode(
+                EqualsNode.of(new IntLiteralNode(10), AddNode.of(new IntLiteralNode(1), new IntLiteralNode(5))),
+                new IntLiteralNode(10),
+                add
+        );
 
-        ZekeRootNode root = new ZekeRootNode(add);
+        ZekeRootNode root = new ZekeRootNode(ifNode);
         CallTarget target = Truffle.getRuntime().createCallTarget(root);
 
         System.out.println(target.call());

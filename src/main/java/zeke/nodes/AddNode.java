@@ -1,13 +1,10 @@
 package zeke.nodes;
 
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
-@NodeChild("left")
-@NodeChild("right")
-public abstract class AddNode extends ZekeNode {
-    public static AddNode create(ZekeNode left, ZekeNode right) {
+public abstract class AddNode extends BinaryNode {
+    public static AddNode of(ExpressionNode left, ExpressionNode right) {
         return AddNodeGen.create(left, right);
     }
 
