@@ -22,7 +22,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'zeke.App'
+    mainClass = 'zeke.Entrypoint'
     applicationDefaultJvmArgs = [
         '-XX:-UseJVMCIClassLoader'
     ]
@@ -39,6 +39,6 @@ task uberJar(type: Jar) {
     }
 
     manifest {
-        attributes["Main-Class"] = "zeke.App"
+        attributes["Main-Class"] = "zeke.Entrypoint"
     }
 }

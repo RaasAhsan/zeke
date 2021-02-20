@@ -1,4 +1,4 @@
-package zeke;
+package zeke.nodes;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
