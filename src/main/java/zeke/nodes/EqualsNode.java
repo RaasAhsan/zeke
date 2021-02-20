@@ -9,17 +9,17 @@ public abstract class EqualsNode extends BinaryNode {
     }
 
     @Specialization
-    protected boolean equalsInt(int left, int right) {
+    protected boolean doInt(int left, int right) {
         return left == right;
     }
 
     @Specialization
-    protected boolean equalsString(String left, String right) {
+    protected boolean doString(String left, String right) {
         return left.equals(right);
     }
 
     @Fallback
-    protected void typeError(Object left, Object right) {
+    protected void orElse(Object left, Object right) {
         throw new RuntimeException("type error");
     }
 }

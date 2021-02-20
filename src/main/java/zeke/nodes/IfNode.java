@@ -5,9 +5,12 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 public final class IfNode extends ExpressionNode {
 
-    @Child private ExpressionNode predicate;
-    @Child private ExpressionNode consequent;
-    @Child private ExpressionNode alternative;
+    @Child
+    private ExpressionNode predicate;
+    @Child
+    private ExpressionNode consequent;
+    @Child
+    private ExpressionNode alternative;
 
     public IfNode(ExpressionNode predicate, ExpressionNode consequent, ExpressionNode alternative) {
         this.predicate = predicate;
@@ -21,7 +24,7 @@ public final class IfNode extends ExpressionNode {
         try {
             test = predicate.executeBoolean(frame);
         } catch (UnexpectedResultException e) {
-            throw new RuntimeException("boolean not found");
+            throw new RuntimeException("Expected boolean");
         }
 
         // A type checker must assert that the types of both subexpressions match

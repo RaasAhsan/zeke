@@ -9,17 +9,17 @@ public abstract class AddNode extends BinaryNode {
     }
 
     @Specialization
-    protected int addInts(int left, int right) {
+    protected int doInt(int left, int right) {
         return left + right;
     }
 
     @Specialization
-    protected String addStrings(String left, String right) {
+    protected String doString(String left, String right) {
         return left + right;
     }
 
     @Fallback
-    protected void typeError(Object left, Object right) {
+    protected void orElse(Object left, Object right) {
         throw new RuntimeException("type error");
     }
 }
