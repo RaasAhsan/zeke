@@ -8,10 +8,11 @@
 
 plugins {
     id 'application'
+    id 'antlr'
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -19,6 +20,8 @@ dependencies {
 
     implementation group: 'org.graalvm.truffle', name: 'truffle-api', version: '21.0.0.2'
     annotationProcessor group: 'org.graalvm.truffle', name: 'truffle-dsl-processor', version: '21.0.0.2'
+
+    antlr "org.antlr:antlr4:4.5"
 }
 
 application {

@@ -18,6 +18,11 @@ public abstract class EqualsNode extends BinaryNode {
         return left.equals(right);
     }
 
+    @Specialization
+    protected boolean doBoolean(boolean left, boolean right) {
+        return left == right;
+    }
+
     @Fallback
     protected void orElse(Object left, Object right) {
         throw new RuntimeException("type error");
