@@ -3,6 +3,8 @@ package zeke.nodes;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 
+// TODO: This is just a convenience node for now, but ultimately addition will be
+// defined in the guest language
 public abstract class AddNode extends BinaryNode {
     public static AddNode of(ExpressionNode left, ExpressionNode right) {
         return AddNodeGen.create(left, right);

@@ -3,12 +3,12 @@ package zeke.nodes;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-import zeke.ZekeTypes;
-import zeke.ZekeTypesGen;
+import zeke.ZkTypes;
+import zeke.ZkTypesGen;
 
-@TypeSystemReference(ZekeTypes.class)
+@TypeSystemReference(ZkTypes.class)
 public abstract class ExpressionNode extends ZkNode {
     public boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
-        return ZekeTypesGen.expectBoolean(this.execute(frame));
+        return ZkTypesGen.expectBoolean(this.execute(frame));
     }
 }

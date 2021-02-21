@@ -1,14 +1,14 @@
 package zeke.nodes;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 
 public final class ZkRootNode extends RootNode {
-    private @Child
-    ZkNode root;
+    @Child private ZkNode root;
 
-    public ZkRootNode(ZkNode root) {
-        super(null);
+    public ZkRootNode(ZkNode root, FrameDescriptor frameDescriptor) {
+        super(null, frameDescriptor);
         this.root = root;
     }
 
