@@ -11,6 +11,11 @@ public final class BooleanLiteralNode extends ExpressionNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return value;
+        return this.value;
+    }
+
+    @Override
+    public boolean executeBoolean(VirtualFrame frame) {
+        return this.value;
     }
 }
