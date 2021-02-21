@@ -8,4 +8,4 @@
  */
 
 rootProject.name = 'zeke'
-include 'interpreter', 'launcher'
+include 'interpreter', 'launcher', 'language'

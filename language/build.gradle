@@ -1,0 +1,13 @@
+
+plugins {
+    id 'scala'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.scala-lang:scala-library:2.13.4'
+    implementation group: 'org.typelevel', name: 'cats-parse_2.13', version: '0.3.1'
+}
