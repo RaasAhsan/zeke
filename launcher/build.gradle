@@ -1,0 +1,36 @@
+
+plugins {
+    id 'application'
+    id 'scala'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.scala-lang:scala-library:2.13.4'
+    implementation project(':interpreter')
+}
+
+application {
+    mainClass = 'zeke.Launcher'
+    applicationDefaultJvmArgs = [
+        '-XX:-UseJVMCIClassLoader'
+    ]
+}
+
+task uberJar(type: Jar) {
+    archiveClassifier = 'uber'
+
+    from sourceSets.main.output
+
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+
+    manifest {
+        attributes["Main-Class"] = "zeke.Launcher"
+    }
+}

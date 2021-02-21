@@ -1,0 +1,14 @@
+
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13'
+    api group: 'org.graalvm.truffle', name: 'truffle-api', version: '21.0.0.2'
+    annotationProcessor group: 'org.graalvm.truffle', name: 'truffle-dsl-processor', version: '21.0.0.2'
+}

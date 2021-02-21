@@ -1,11 +1,11 @@
-package zeke;
+package zeke
 
 import com.oracle.truffle.api.Truffle
 import com.oracle.truffle.api.frame.FrameDescriptor
 import zeke.nodes._
 import zeke.runtime.ZkFunction
 
-object Entrypoint {
+object Launcher {
     def main(args: Array[String]): Unit = {
         val frameDescriptor = new FrameDescriptor()
 
