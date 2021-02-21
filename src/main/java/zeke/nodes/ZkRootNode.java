@@ -3,10 +3,11 @@ package zeke.nodes;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 
-public final class ZekeRootNode extends RootNode {
-    private @Child ZekeNode root;
+public final class ZkRootNode extends RootNode {
+    private @Child
+    ZkNode root;
 
-    public ZekeRootNode(ZekeNode root) {
+    public ZkRootNode(ZkNode root) {
         super(null);
         this.root = root;
     }

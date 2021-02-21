@@ -7,7 +7,7 @@ import zeke.ZekeTypes;
 import zeke.ZekeTypesGen;
 
 @TypeSystemReference(ZekeTypes.class)
-public abstract class ExpressionNode extends ZekeNode {
+public abstract class ExpressionNode extends ZkNode {
     public boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
         return ZekeTypesGen.expectBoolean(this.execute(frame));
     }
