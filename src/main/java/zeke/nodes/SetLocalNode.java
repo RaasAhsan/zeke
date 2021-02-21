@@ -3,7 +3,7 @@ package zeke.nodes;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import zeke.runtime.Unit;
+import zeke.runtime.ZkUnit;
 
 // TODO: specialize this later
 public final class SetLocalNode extends ExpressionNode {
@@ -20,6 +20,6 @@ public final class SetLocalNode extends ExpressionNode {
     public Object execute(VirtualFrame frame) {
         frame.getFrameDescriptor().setFrameSlotKind(this.slot, FrameSlotKind.Object);
         frame.setObject(this.slot, this.expr.execute(frame));
-        return Unit.SINGLETON;
+        return ZkUnit.SINGLETON;
     }
 }
