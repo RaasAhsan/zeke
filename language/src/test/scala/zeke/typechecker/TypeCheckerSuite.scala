@@ -5,10 +5,13 @@ import zeke.{Syntax, Type}
 
 class TypeCheckerSuite extends FunSuite {
 
-  // TODO: pull in scalacheck-effect
+  import Syntax._
+  import Type._
+
+  // TODO: pull in munit-scalacheck
 
   test("integer literals") {
-    assertEquals(TypeChecker.typecheckExpression(Syntax.IntLiteral(10), TypingContext.Empty), Right(Type.IntType))
+    assertEquals(TypeChecker.typecheckExpression(IntLiteral(10), TypingContext.Empty), Right(IntType))
   }
 
 }
