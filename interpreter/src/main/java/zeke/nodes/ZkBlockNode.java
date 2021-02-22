@@ -3,6 +3,7 @@ package zeke.nodes;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.BlockNode;
 
+// TODO: This should introduce a new scope
 public final class ZkBlockNode extends ExpressionNode implements BlockNode.ElementExecutor<ExpressionNode> {
 
     @Child private BlockNode<ExpressionNode> block;
