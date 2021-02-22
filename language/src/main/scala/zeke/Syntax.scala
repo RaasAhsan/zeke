@@ -14,7 +14,7 @@ object Syntax {
 
   // Functions
 
-  final case class Function(formalParameters: List[(String, Type)], body: Expression) extends Expression
+  final case class Function(formalParameters: List[(Symbol, Type)], body: Expression) extends Expression
 
   final case class InvokeFunction(function: Expression, arguments: List[Expression]) extends Expression
 

@@ -10,4 +10,12 @@ repositories {
 dependencies {
     implementation 'org.scala-lang:scala-library:2.13.4'
     implementation group: 'org.typelevel', name: 'cats-parse_2.13', version: '0.3.1'
+
+    testImplementation group: 'org.scalameta', name: 'munit_2.13', version: '0.7.22'
+}
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
 }
