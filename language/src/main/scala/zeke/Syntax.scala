@@ -14,17 +14,15 @@ object Syntax {
 
   // Functions
 
-  final case class Function(formalParameters: List[(Symbol, Type)], body: Expression) extends Expression
-
   final case class InvokeFunction(function: Expression, arguments: List[Expression]) extends Expression
 
   // Variables
 
   // TODO: should there be a distinction between locals and arguments?
   // TODO: change name to a proper Symbol
-  final case class BindVariable(name: String, value: Expression) extends Expression
+  final case class BindVariable(name: Symbol, value: Expression) extends Expression
 
-  final case class GetVariable(name: String) extends Expression
+  final case class GetVariable(name: Symbol) extends Expression
 
   // Arithmetic expressions
 
@@ -57,5 +55,7 @@ object Syntax {
   final case class BooleanLiteral(value: Boolean) extends Expression
 
   final case class UnitLiteral(value: Int) extends Expression
+
+  final case class FunctionLiteral(formalParameters: List[(Symbol, Type)], body: Expression) extends Expression
 
 }
