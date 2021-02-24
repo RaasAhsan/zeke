@@ -62,6 +62,12 @@ object TypeChecker {
           _ <- assertTypesEqual(ty2.ty, ty3.ty)
         } yield Typing(ty2.ty, ctx)
 
+      case Block(exprs) =>
+        exprs.foldLeft[TypeCheckResult](Right(Typing(UnitType, ctx))) {
+          case (Right(typing), expr) => typecheckExpression(expr, typing.ctx)
+          case (l @ Left(_), _) => l
+        }
+
       // Variables
       case GetVariable(name) =>
         ctx.getVariable(name).fold[TypeCheckResult](Left(s"variable $name not found"))(ty => Right(Typing(ty, ctx)))
