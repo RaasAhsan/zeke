@@ -14,4 +14,6 @@ object Type {
 
   final case class FunctionType(argumentTypes: List[Type], returnType: Type) extends Type
 
+  final case class RecordType(name: TypeName, projections: Map[Symbol, Type]) extends Type
+
 }

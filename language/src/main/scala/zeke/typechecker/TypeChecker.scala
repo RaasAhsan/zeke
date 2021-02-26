@@ -2,6 +2,7 @@ package zeke.typechecker
 
 import zeke.Type
 import zeke.Syntax
+import zeke.Symbol
 
 object TypeChecker {
 
@@ -14,6 +15,19 @@ object TypeChecker {
 
   def typecheckProgram(program: Program): Boolean = {
     ???
+  }
+
+  def typecheckTypeDeclaration(term: TypeDeclaration, ctx: TypingContext): TypeCheckResult = {
+    term match {
+      case RecordDeclaration(name, projections) =>
+        val projMap = projections.toMap
+        if (projMap.size == projections.distinct.length) {
+          val ty = RecordType(name, projMap)
+          Right(Typing(ty, ctx.addTypeDeclaration(name, ty)))
+        } else {
+          Left(s"same field name was declared in record $name")
+        }
+    }
   }
 
   // type checking algorithm follows from inversion lemma
@@ -70,10 +84,39 @@ object TypeChecker {
 
       // Variables
       case GetVariable(name) =>
-        ctx.getVariable(name).fold[TypeCheckResult](Left(s"variable $name not found"))(ty => Right(Typing(ty, ctx)))
+        ctx.getVariableBinding(name).fold[TypeCheckResult](Left(s"variable $name not found"))(ty => Right(Typing(ty, ctx)))
 
       case BindVariable(name, value) =>
         typecheckExpression(value, ctx).map(ty => Typing(UnitType, ctx.addVariableBinding(name, ty.ty)))
+
+      // Records
+      case RecordValue(name, values) =>
+        for {
+          ty <- ctx.getTypeForName(name) match {
+            case Some(ty) => Right(ty)
+            case None => Left ("unknown type")
+          }
+          rty <- assertRecordType(ty)
+          // List[(Symbol, Either[String, Typing])] => Either[String, List[(Symbol, Typing)]]
+          // TODO: ordering of fields is insignificant for now, probably not a huge deal
+          map <- values.foldLeft[Either[String, Map[Symbol, Type]]](Right(Map())) { case (acc, (symbol, expr)) =>
+            for {
+              map <- acc
+              typ <- typecheckExpression(expr, ctx)
+            } yield map + (symbol -> typ.ty)
+          }
+          _ <- if (map == rty.projections) Right(()) else Left("record projections don't match")
+        } yield Typing(rty, ctx)
+
+      case RecordProjection(expr, proj) =>
+        for {
+          typ <- typecheckExpression(expr, ctx)
+          rty <- assertRecordType(typ.ty)
+          pty <- rty.projections.get(proj) match {
+            case Some(ty) => Right(ty)
+            case None => Left("field not part of record")
+          }
+        } yield Typing(pty, ctx)
 
       case _ => Left(s"no typing rules for $term")
     }
@@ -81,5 +124,11 @@ object TypeChecker {
 
   private def assertTypesEqual(ty1: Type, ty2: Type): Either[String, Unit] =
     if (ty1 == ty2) Right(()) else Left(s"$ty1 does not equal $ty2")
+
+  private def assertRecordType(ty: Type): Either[String, RecordType] =
+    ty match {
+      case r @ RecordType(_, _) => Right(r)
+      case _ => Left("not a record")
+    }
 
 }
