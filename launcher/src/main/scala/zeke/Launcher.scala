@@ -5,6 +5,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor
 import zeke.nodes._
 import zeke.parser.ZekeParser
 import zeke.runtime.ZkFunction
+import zeke.typechecker.TypeChecker
 
 object Launcher {
   def main(args: Array[String]): Unit = {
@@ -23,9 +24,20 @@ object Launcher {
         |
         |record Empty{}
         |
+        |let x = true
+        |
+        |let y = x
+        |
+        |y
+        |
         |""".stripMargin
 
-    println(ZekeParser.parse(input))
+    ZekeParser.parse(input) match {
+      case Right(program) =>
+        println(program)
+        println(s"typecheck: ${TypeChecker.typecheckProgram(program)}")
+      case Left(err) => println("invalid ast")
+    }
 
 //    val frameDescriptor = new FrameDescriptor()
 //    val program = new ZkBlockNode(Array(

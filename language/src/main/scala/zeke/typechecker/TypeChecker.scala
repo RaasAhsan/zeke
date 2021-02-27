@@ -13,8 +13,19 @@ object TypeChecker {
   import Syntax._
   import Type._
 
-  def typecheckProgram(program: Program): Boolean = {
-    ???
+  def typecheckProgram(program: Program): Either[String, Unit] = {
+    val initCtx = TypingContext.Empty
+    val result = for {
+      r1 <- program.decls.foldLeft[TypeCheckResult](Right(Typing(UnitType, initCtx))) {
+        case (Right(typing), expr) => typecheckTypeDeclaration(expr, typing.ctx)
+        case (l @ Left(_), _) => l
+      }
+      _ <- program.exprs.foldLeft[TypeCheckResult](Right(Typing(UnitType, r1.ctx))) {
+        case (Right(typing), expr) => typecheckExpression(expr, typing.ctx)
+        case (l @ Left(_), _) => l
+      }
+    } yield ()
+    result
   }
 
   def typecheckTypeDeclaration(term: TypeDeclaration, ctx: TypingContext): TypeCheckResult = {
