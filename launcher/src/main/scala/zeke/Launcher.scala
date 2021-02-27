@@ -16,9 +16,14 @@ object Launcher {
         |  age: int
         |}
         |
+        |record Pair {
+        |  first: int,
+        |  second: int
+        |}
+        |
         |""".stripMargin
 
-    println(ZekeParser.parseProgram(input))
+    println(ZekeParser.parse(input))
 
 //    val frameDescriptor = new FrameDescriptor()
 //    val program = new ZkBlockNode(Array(

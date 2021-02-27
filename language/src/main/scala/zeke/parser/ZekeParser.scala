@@ -9,11 +9,14 @@ object ZekeParser {
 
   import zeke.Syntax._
 
-  def parseProgram(input: String): Either[String, Program] =
-    program.parseOnly(input).either
+  def parse(input: String): Either[String, Program] =
+    entrypoint.parseOnly(input).either
+
+  def entrypoint: Parser[Program] =
+    skipWhitespace ~> program <~ endOfInput
 
   def program: Parser[Program] =
-    skipWhitespace ~> (many(typeDeclaration)).map((decls) => Program(decls, List()))
+    (many(typeDeclaration)).map((decls) => Program(decls, List()))
 
   def typeDeclaration: Parser[TypeDeclaration] =
     recordDeclaration
