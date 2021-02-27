@@ -116,7 +116,7 @@ object TypeChecker {
         ctx.getVariableBinding(name).fold[TypeCheckResult](Left(s"variable $name not found"))(ty => Right(Typing(ty, ctx)))
 
       // Records
-      case RecordValue(name, values) =>
+      case RecordLiteral(name, values) =>
         for {
           ty <- ctx.getTypeForName(name) match {
             case Some(ty) => Right(ty)

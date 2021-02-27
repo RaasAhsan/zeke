@@ -16,25 +16,27 @@ object ZekeParser {
     skipWhitespace ~> program <~ endOfInput
 
   def program: Parser[Program] =
-    (many(typeDeclaration), many(statement)).mapN((decls, statements) => Program(decls, statements))
+    (many(typeDeclaration), many((endOfInput ~> err[Statement]("end")) | statement)).mapN((decls, statements) => Program(decls, statements))
 
   def typeDeclaration: Parser[TypeDeclaration] =
     recordDeclaration
 
   def recordDeclaration: Parser[RecordDeclaration] = {
-    def recordField: Parser[(Symbol, TypeName)] =
+    def field: Parser[(Symbol, TypeName)] =
       pairBy(symbol, colon, typeName)
 
-    def recordKeyword: Parser[Unit] =
+    def keyword: Parser[Unit] =
       identifier.filter(_ == "record").void
 
-    recordKeyword ~> (typeName, withBraces(sepBy(recordField, comma))).mapN { (name, fields) =>
+    keyword ~> (typeName, withBraces(sepBy(field, comma))).mapN { (name, fields) =>
       RecordDeclaration(name, fields)
     }
   }
 
+  // Statements
+
   def statement: Parser[Statement] =
-    letStatement | expressionStatement
+    (letStatement | expressionStatement)
 
   def letStatement: Parser[LetStatement] = {
     def letKeyword: Parser[Unit] =
@@ -48,38 +50,59 @@ object ZekeParser {
   def expressionStatement: Parser[ExpressionStatement] =
     expression.map(ExpressionStatement(_))
 
+  // Expressions
+
   def expression: Parser[Expression] =
-    booleanLiteral | recordValue | variableExpression
+    additiveExpression
+
+  def additiveExpression: Parser[Expression] =
+    (multiplicativeExpression, ((plus.as(true) | minus.as(false)) ~ multiplicativeExpression).many).mapN { (k, ks) =>
+      ks.foldLeft(k) { case (acc, (b, expr)) =>
+        if (b) Add(acc, expr) else Subtract(acc, expr)
+      }
+    }
+
+  def multiplicativeExpression: Parser[Expression] =
+    (dotExpression, (star ~> dotExpression).many).mapN { (k, ks) =>
+      ks.foldLeft(k) { case (acc, expr) =>
+        Multiply(acc, expr)
+      }
+    }
+
+  def dotExpression: Parser[Expression] =
+    (primary, (dot ~> symbol).many).mapN { (k, ks) =>
+      ks.foldLeft(k) { case (acc, sym) =>
+        RecordProjection(acc, sym)
+      }
+    }
+
+  def primary: Parser[Expression] =
+    booleanLiteral | integerLiteral | stringLiteralP | recordLiteral | variableExpression | withParens(expression)
+
+  def integerLiteral: Parser[IntLiteral] =
+    token(int.map(IntLiteral(_)))
+
+  def stringLiteralP: Parser[StringLiteral] =
+    token(stringLiteral.map(StringLiteral(_)))
 
   def variableExpression: Parser[GetVariable] =
-    symbol.map(GetVariable(_))
+    token(symbol.map(GetVariable(_)))
 
   def booleanLiteral: Parser[BooleanLiteral] = {
-    def trueValue: Parser[BooleanLiteral] =
-      identifier.filter(_ == "true").as(BooleanLiteral(true))
-
-    def falseValue: Parser[BooleanLiteral] =
-      identifier.filter(_ == "false").as(BooleanLiteral(false))
-
-    trueValue | falseValue
+    val a1 = identifier.filter(_ == "true").as(BooleanLiteral(true))
+    val a2 = identifier.filter(_ == "false").as(BooleanLiteral(false))
+    a1 | a2
   }
 
-  def recordValue: Parser[RecordValue] = {
+  def recordLiteral: Parser[RecordLiteral] = {
     def recordFieldAssignment: Parser[(Symbol, Expression)] =
       (symbol <~ colon) ~ expression
 
-    (typeName, withBraces(sepBy(recordFieldAssignment, comma))).mapN(RecordValue(_, _))
+    (typeName, withBraces(sepBy(recordFieldAssignment, comma))).mapN(RecordLiteral(_, _))
   }
 
   def recordProjection: Parser[RecordProjection] =
     (expression <~ dot, symbol).mapN(RecordProjection(_, _))
-
-  // TODO: need to generalize this
-//  def numericExpression: Parser[Expression] =
-//    addExpression
-//
-//  def addExpression: Parser[Add] =
-
 
   // Identifiers
 
@@ -101,6 +124,15 @@ object ZekeParser {
   def equalsOp: Parser[Unit] =
     op.filter(_ == "=").void
 
+  def plus: Parser[Unit] =
+    op.filter(_ == "+").void
+
+  def minus: Parser[Unit] =
+    op.filter(_ == "-").void
+
+  def star: Parser[Unit] =
+    op.filter(_ == "*").void
+
   def op: Parser[String] =
     token(stringOf1(oneOf("=+<>*-/")))
 
@@ -109,12 +141,15 @@ object ZekeParser {
 
 
   def withBraces[A](p: => Parser[A]): Parser[A] =
-    bracket(leftBrace, p, rightBrace)
+    bracket(token(string("{")), p, token(string("}")))
 
-  def leftBrace: Parser[String] =
-    token(string("{"))
+  def withParens[A](p: => Parser[A]): Parser[A] =
+    bracket(token(string("(")), p, token(string(")")))
 
-  def rightBrace: Parser[String] =
-    token(string("}"))
+  def debug = get.map(x => {
+    println(x)
+    println(x.length)
+    ()
+  })
 
 }

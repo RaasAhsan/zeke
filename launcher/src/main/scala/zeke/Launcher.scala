@@ -18,20 +18,40 @@ object Launcher {
         |}
         |
         |record Pair {
-        |  first: boolean,
-        |  second: boolean
+        |  first: int,
+        |  second: int
+        |}
+        |
+        |record PairOfPair {
+        |  first: Pair,
+        |  second: Pair
         |}
         |
         |record Empty{}
         |
         |let x = true
         |let y = Pair {
-        |  first: true,
-        |  second: false
+        |  first: 34,
+        |  second: 54
         |}
+        |
+        |let z = PairOfPair {
+        |  first: y,
+        |  second: y
+        |}
+        |
+        |let a = z.first.first
+        |let e = Empty {}
+        |let p = Person {
+        |  name: "Jimmy",
+        |  age: ab
+        |}
+        |
+        |let z = (4 + 3) * 5
         |
         |""".stripMargin
 
+    println(input)
     ZekeParser.parse(input) match {
       case Right(program) =>
         println(program)

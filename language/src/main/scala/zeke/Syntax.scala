@@ -60,13 +60,13 @@ object Syntax {
 
   final case class BooleanLiteral(value: Boolean) extends Expression
 
-  final case class UnitLiteral(value: Int) extends Expression
+  final case class UnitLiteral() extends Expression
 
   final case class FunctionLiteral(formalParameters: List[(Symbol, Type)], body: Expression) extends Expression
 
   // Record operations
 
-  final case class RecordValue(typeName: TypeName, values: List[(Symbol, Expression)]) extends Expression
+  final case class RecordLiteral(typeName: TypeName, values: List[(Symbol, Expression)]) extends Expression
 
   final case class RecordProjection(expr: Expression, projection: Symbol) extends Expression
 
