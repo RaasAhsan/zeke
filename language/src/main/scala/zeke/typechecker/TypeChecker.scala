@@ -20,8 +20,8 @@ object TypeChecker {
         case (Right(typing), expr) => typecheckTypeDeclaration(expr, typing.ctx)
         case (l @ Left(_), _) => l
       }
-      _ <- program.exprs.foldLeft[TypeCheckResult](Right(Typing(UnitType, r1.ctx))) {
-        case (Right(typing), expr) => typecheckExpression(expr, typing.ctx)
+      _ <- program.statements.foldLeft[TypeCheckResult](Right(Typing(UnitType, r1.ctx))) {
+        case (Right(typing), expr) => typecheckStatement(expr, typing.ctx)
         case (l @ Left(_), _) => l
       }
     } yield ()
@@ -51,6 +51,13 @@ object TypeChecker {
         }
     }
   }
+
+  def typecheckStatement(term: Statement, ctx: TypingContext): TypeCheckResult =
+    term match {
+      case ExpressionStatement(expr) => typecheckExpression(expr, ctx)
+      case LetStatement(name, value) =>
+        typecheckExpression(value, ctx).map(ty => Typing(UnitType, ctx.addVariableBinding(name, ty.ty)))
+    }
 
   // type checking algorithm follows from inversion lemma
   def typecheckExpression(term: Expression, ctx: TypingContext): TypeCheckResult = {
@@ -108,15 +115,12 @@ object TypeChecker {
       case GetVariable(name) =>
         ctx.getVariableBinding(name).fold[TypeCheckResult](Left(s"variable $name not found"))(ty => Right(Typing(ty, ctx)))
 
-      case BindVariable(name, value) =>
-        typecheckExpression(value, ctx).map(ty => Typing(UnitType, ctx.addVariableBinding(name, ty.ty)))
-
       // Records
       case RecordValue(name, values) =>
         for {
           ty <- ctx.getTypeForName(name) match {
             case Some(ty) => Right(ty)
-            case None => Left ("unknown type")
+            case None => Left (s"unknown type $name")
           }
           rty <- assertRecordType(ty)
           // List[(Symbol, Either[String, Typing])] => Either[String, List[(Symbol, Typing)]]

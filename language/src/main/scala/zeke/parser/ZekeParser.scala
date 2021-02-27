@@ -16,53 +16,63 @@ object ZekeParser {
     skipWhitespace ~> program <~ endOfInput
 
   def program: Parser[Program] =
-    (many(typeDeclaration), many(expression)).mapN((decls, exprs) => Program(decls, exprs))
+    (many(typeDeclaration), many(statement)).mapN((decls, statements) => Program(decls, statements))
 
   def typeDeclaration: Parser[TypeDeclaration] =
     recordDeclaration
 
-  def recordDeclaration: Parser[RecordDeclaration] =
+  def recordDeclaration: Parser[RecordDeclaration] = {
+    def recordField: Parser[(Symbol, TypeName)] =
+      pairBy(symbol, colon, typeName)
+
+    def recordKeyword: Parser[Unit] =
+      identifier.filter(_ == "record").void
+
     recordKeyword ~> (typeName, withBraces(sepBy(recordField, comma))).mapN { (name, fields) =>
       RecordDeclaration(name, fields)
     }
+  }
 
-  def recordField: Parser[(Symbol, TypeName)] =
-    pairBy(symbol, colon, typeName)
+  def statement: Parser[Statement] =
+    letStatement | expressionStatement
 
-  def recordKeyword: Parser[Unit] =
-    identifier.filter(_ == "record").void
+  def letStatement: Parser[LetStatement] = {
+    def letKeyword: Parser[Unit] =
+      identifier.filter(_ == "let").void
 
-  def withBraces[A](p: => Parser[A]): Parser[A] =
-    bracket(leftBrace, p, rightBrace)
+    (letKeyword ~> symbol, equalsOp ~> expression).mapN { (name, expr) =>
+      LetStatement(name, expr)
+    }
+  }
 
-  def leftBrace: Parser[String] =
-    token(string("{"))
-
-  def rightBrace: Parser[String] =
-    token(string("}"))
+  def expressionStatement: Parser[ExpressionStatement] =
+    expression.map(ExpressionStatement(_))
 
   def expression: Parser[Expression] =
-    letExpression | booleanLiteral | variableExpression
-
-  def letExpression: Parser[BindVariable] =
-    (letKeyword ~> symbol, equalsOp ~> expression).mapN { (name, expr) =>
-      BindVariable(name, expr)
-    }
-
-  def letKeyword: Parser[Unit] =
-    identifier.filter(_ == "let").void
+    booleanLiteral | recordValue | variableExpression
 
   def variableExpression: Parser[GetVariable] =
     symbol.map(GetVariable(_))
 
-  def booleanLiteral: Parser[BooleanLiteral] =
+  def booleanLiteral: Parser[BooleanLiteral] = {
+    def trueValue: Parser[BooleanLiteral] =
+      identifier.filter(_ == "true").as(BooleanLiteral(true))
+
+    def falseValue: Parser[BooleanLiteral] =
+      identifier.filter(_ == "false").as(BooleanLiteral(false))
+
     trueValue | falseValue
+  }
 
-  def trueValue: Parser[BooleanLiteral] =
-    identifier.filter(_ == "true").as(BooleanLiteral(true))
+  def recordValue: Parser[RecordValue] = {
+    def recordFieldAssignment: Parser[(Symbol, Expression)] =
+      (symbol <~ colon) ~ expression
 
-  def falseValue: Parser[BooleanLiteral] =
-    identifier.filter(_ == "false").as(BooleanLiteral(false))
+    (typeName, withBraces(sepBy(recordFieldAssignment, comma))).mapN(RecordValue(_, _))
+  }
+
+  def recordProjection: Parser[RecordProjection] =
+    (expression <~ dot, symbol).mapN(RecordProjection(_, _))
 
   // TODO: need to generalize this
 //  def numericExpression: Parser[Expression] =
@@ -93,5 +103,18 @@ object ZekeParser {
 
   def op: Parser[String] =
     token(stringOf1(oneOf("=+<>*-/")))
+
+  def dot: Parser[String] =
+    token(string("."))
+
+
+  def withBraces[A](p: => Parser[A]): Parser[A] =
+    bracket(leftBrace, p, rightBrace)
+
+  def leftBrace: Parser[String] =
+    token(string("{"))
+
+  def rightBrace: Parser[String] =
+    token(string("}"))
 
 }

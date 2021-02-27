@@ -18,17 +18,17 @@ object Launcher {
         |}
         |
         |record Pair {
-        |  first: int,
-        |  second: int
+        |  first: boolean,
+        |  second: boolean
         |}
         |
         |record Empty{}
         |
         |let x = true
-        |
-        |let y = x
-        |
-        |y
+        |let y = Pair {
+        |  first: true,
+        |  second: false
+        |}
         |
         |""".stripMargin
 
@@ -36,7 +36,7 @@ object Launcher {
       case Right(program) =>
         println(program)
         println(s"typecheck: ${TypeChecker.typecheckProgram(program)}")
-      case Left(err) => println("invalid ast")
+      case Left(err) => println(err)
     }
 
 //    val frameDescriptor = new FrameDescriptor()

@@ -4,11 +4,17 @@ import cats.data.NonEmptyList
 
 object Syntax {
 
-  final case class Program(decls: List[TypeDeclaration], exprs: List[Expression])
+  final case class Program(decls: List[TypeDeclaration], statements: List[Statement])
 
   sealed trait TypeDeclaration
 
   final case class RecordDeclaration(name: TypeName, projections: List[(Symbol, TypeName)]) extends TypeDeclaration
+
+  sealed trait Statement
+
+  final case class LetStatement(name: Symbol, value: Expression) extends Statement
+
+  final case class ExpressionStatement(expr: Expression) extends Statement
 
   sealed trait Expression
 
@@ -21,10 +27,6 @@ object Syntax {
   final case class InvokeFunction(function: Expression, arguments: List[Expression]) extends Expression
 
   // Variables
-
-  // TODO: should there be a distinction between locals and arguments?
-  // TODO: change name to a proper Symbol
-  final case class BindVariable(name: Symbol, value: Expression) extends Expression
 
   final case class GetVariable(name: Symbol) extends Expression
 
