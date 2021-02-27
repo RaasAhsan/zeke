@@ -4,7 +4,11 @@ import cats.data.NonEmptyList
 
 object Syntax {
 
-  final case class Program(exprs: List[Expression])
+  final case class Program(decls: List[TypeDeclaration], exprs: List[Expression])
+
+  sealed trait TypeDeclaration
+
+  final case class RecordDeclaration(name: TypeName, projections: List[(Symbol, TypeName)]) extends TypeDeclaration
 
   sealed trait Expression
 
@@ -57,5 +61,11 @@ object Syntax {
   final case class UnitLiteral(value: Int) extends Expression
 
   final case class FunctionLiteral(formalParameters: List[(Symbol, Type)], body: Expression) extends Expression
+
+  // Record operations
+
+  final case class RecordValue(typeName: TypeName, values: List[(Symbol, Expression)]) extends Expression
+
+  final case class RecordProjection(expr: Expression, projection: Symbol) extends Expression
 
 }
