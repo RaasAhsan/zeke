@@ -8,7 +8,7 @@ object Syntax {
 
   sealed trait TypeDeclaration
 
-  final case class RecordDeclaration(name: TypeName, projections: List[(Symbol, Type)]) extends TypeDeclaration
+  final case class RecordDeclaration(name: TypeName, projections: List[(Symbol, TypeName)]) extends TypeDeclaration
 
   sealed trait Expression
 

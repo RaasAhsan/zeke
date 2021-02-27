@@ -20,10 +20,21 @@ object TypeChecker {
   def typecheckTypeDeclaration(term: TypeDeclaration, ctx: TypingContext): TypeCheckResult = {
     term match {
       case RecordDeclaration(name, projections) =>
-        val projMap = projections.toMap
-        if (projMap.size == projections.distinct.length) {
-          val ty = RecordType(name, projMap)
-          Right(Typing(ty, ctx.addTypeDeclaration(name, ty)))
+        val projDistinct = projections.distinctBy(_._1)
+        if (projDistinct.size == projections.distinct.length) {
+          val projTypes = projDistinct.foldLeft[Either[String, Map[Symbol, Type]]](Right(Map())) { case (acc, (symbol, typeName)) =>
+            for {
+              map <- acc
+              ty <- ctx.getTypeForName(typeName) match {
+                case Some(ty) => Right(ty)
+                case None => Left("type not found")
+              }
+            } yield map + (symbol -> ty)
+          }
+          projTypes.map { types =>
+            val ty = RecordType(name, types)
+            Typing(ty, ctx.addTypeDeclaration(name, ty))
+          }
         } else {
           Left(s"same field name was declared in record $name")
         }
