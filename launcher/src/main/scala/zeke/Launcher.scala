@@ -21,6 +21,8 @@ object Launcher {
         |  second: int
         |}
         |
+        |record Empty{}
+        |
         |""".stripMargin
 
     println(ZekeParser.parse(input))
