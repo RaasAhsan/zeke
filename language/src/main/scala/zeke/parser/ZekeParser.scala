@@ -22,11 +22,11 @@ object ZekeParser {
     recordDeclaration
 
   def recordDeclaration: Parser[RecordDeclaration] = {
-    def field: Parser[(Symbol, TypeName)] =
-      pairBy(symbol, colon, typeName)
-
     def keyword: Parser[Unit] =
       identifier.filter(_ == "record").void
+
+    def field: Parser[(Symbol, TypeName)] =
+      pairBy(symbol, colon, typeName)
 
     keyword ~> (typeName, withBraces(sepBy(field, comma))).mapN { (name, fields) =>
       RecordDeclaration(name, fields)
@@ -39,10 +39,10 @@ object ZekeParser {
     (letStatement | expressionStatement)
 
   def letStatement: Parser[LetStatement] = {
-    def letKeyword: Parser[Unit] =
+    def keyword: Parser[Unit] =
       identifier.filter(_ == "let").void
 
-    (letKeyword ~> symbol, equalsOp ~> expression).mapN { (name, expr) =>
+    (keyword ~> symbol, equalsOp ~> expression).mapN { (name, expr) =>
       LetStatement(name, expr)
     }
   }
@@ -70,14 +70,22 @@ object ZekeParser {
     }
 
   def dotExpression: Parser[Expression] =
-    (primary, (dot ~> symbol).many).mapN { (k, ks) =>
+    (callExpression, (dot ~> symbol).many).mapN { (k, ks) =>
       ks.foldLeft(k) { case (acc, sym) =>
         RecordProjection(acc, sym)
       }
     }
 
+  def callExpression: Parser[Expression] = {
+    (primary, withParens(sepBy(expression, comma)).many).mapN { (k, ks) =>
+      ks.foldLeft(k) { case (acc, exprs) =>
+        InvokeFunction(acc, exprs)
+      }
+    }
+  }
+
   def primary: Parser[Expression] =
-    booleanLiteral | integerLiteral | stringLiteralP | recordLiteral | variableExpression | withParens(expression)
+    booleanLiteral | integerLiteral | stringLiteralP | functionLiteral | recordLiteral | variableExpression | withParens(expression)
 
   def integerLiteral: Parser[IntLiteral] =
     token(int.map(IntLiteral(_)))
@@ -92,6 +100,18 @@ object ZekeParser {
     val a1 = identifier.filter(_ == "true").as(BooleanLiteral(true))
     val a2 = identifier.filter(_ == "false").as(BooleanLiteral(false))
     a1 | a2
+  }
+
+  def functionLiteral: Parser[FunctionLiteral] = {
+    def keyword: Parser[Unit] =
+      identifier.filter(_ == "fun").void
+
+    def field: Parser[(Symbol, TypeName)] =
+      pairBy(symbol, colon, typeName)
+
+    keyword ~> (withParens(sepBy(field, comma)), withBraces(expression)).mapN { (parameters, body) =>
+      FunctionLiteral(parameters, body)
+    }
   }
 
   def recordLiteral: Parser[RecordLiteral] = {

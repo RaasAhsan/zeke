@@ -62,7 +62,7 @@ object Syntax {
 
   final case class UnitLiteral() extends Expression
 
-  final case class FunctionLiteral(formalParameters: List[(Symbol, Type)], body: Expression) extends Expression
+  final case class FunctionLiteral(formalParameters: List[(Symbol, TypeName)], body: Expression) extends Expression
 
   // Record operations
 

@@ -1,5 +1,6 @@
 package zeke.typechecker
 
+import cats.syntax.all._
 import zeke.Type
 import zeke.Syntax
 import zeke.Symbol
@@ -67,11 +68,12 @@ object TypeChecker {
       case StringLiteral(_) => Right(Typing(StringType, ctx))
       case BooleanLiteral(_) => Right(Typing(BooleanType, ctx))
       case FunctionLiteral(params, body) =>
-        val paramTys = params.map(_._2)
-        val newCtx = ctx.addVariableBindings(params)
-        typecheckExpression(body, newCtx).map { ty =>
-          Typing(FunctionType(paramTys, ty.ty), ctx) // TODO: in the future when methods exist, add it to a context?
-        }
+        for {
+          ptys <- params.map { case (symbol, typeName) =>
+            ctx.getTypeForName(typeName).fold[Either[String, (Symbol, Type)]](Left("type not found"))(ty => Right(symbol -> ty))
+          }.sequence
+          rty <- typecheckExpression(body, ctx.addVariableBindings(ptys))
+        } yield Typing(FunctionType(ptys.map(_._2), rty.ty), ctx) // TODO: in the future when methods exist, add it to a context?
 
       // Arithmetic expressions
       case Add(left, right) =>
@@ -123,15 +125,11 @@ object TypeChecker {
             case None => Left (s"unknown type $name")
           }
           rty <- assertRecordType(ty)
-          // List[(Symbol, Either[String, Typing])] => Either[String, List[(Symbol, Typing)]]
           // TODO: ordering of fields is insignificant for now, probably not a huge deal
-          map <- values.foldLeft[Either[String, Map[Symbol, Type]]](Right(Map())) { case (acc, (symbol, expr)) =>
-            for {
-              map <- acc
-              typ <- typecheckExpression(expr, ctx)
-            } yield map + (symbol -> typ.ty)
-          }
-          _ <- if (map == rty.projections) Right(()) else Left("record projections don't match")
+          ftys <- values.map { case (sym, expr) =>
+            typecheckExpression(expr, ctx).map(typ => sym -> typ.ty)
+          }.sequence
+          _ <- if (ftys.toMap == rty.projections) Right(()) else Left("record projections don't match")
         } yield Typing(rty, ctx)
 
       case RecordProjection(expr, proj) =>
@@ -143,6 +141,17 @@ object TypeChecker {
             case None => Left("field not part of record")
           }
         } yield Typing(pty, ctx)
+
+      case InvokeFunction(function, arguments) =>
+        for {
+          typ <- typecheckExpression(function, ctx)
+          fty <- typ.ty match {
+            case f: FunctionType => Right(f)
+            case _ => Left("function type not found")
+          }
+          ptys <- arguments.map(e => typecheckExpression(e, ctx)).sequence
+          _ <- if (fty.argumentTypes == ptys.map(_.ty)) Right(()) else Left("parameter types on functional call did not match")
+        } yield Typing(fty.returnType, ctx)
 
       case _ => Left(s"no typing rules for $term")
     }

@@ -44,10 +44,21 @@ object Launcher {
         |let e = Empty {}
         |let p = Person {
         |  name: "Jimmy",
-        |  age: ab
+        |  age: 23
         |}
         |
         |let z = (4 + 3) * 5
+        |
+        |let f = fun(x: int, y: int) {
+        |  x + y
+        |}
+        |
+        |let g = fun(x: int, y: int) {
+        |  x + y + z
+        |}
+        |
+        |f( 3, 4)
+        |g(1, 2)
         |
         |""".stripMargin
 
