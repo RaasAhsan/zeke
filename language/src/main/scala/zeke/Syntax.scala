@@ -8,7 +8,7 @@ object Syntax {
 
   sealed trait TypeDeclaration
 
-  final case class RecordDeclaration(name: TypeName, projections: List[(Symbol, TypeName)]) extends TypeDeclaration
+  final case class RecordDeclaration(name: TypeName, projections: List[(Symbol, TypeReference)]) extends TypeDeclaration
 
   sealed trait Statement
 
@@ -24,7 +24,7 @@ object Syntax {
 
   // Functions
 
-  final case class InvokeFunction(function: Expression, arguments: List[Expression]) extends Expression
+  final case class InvokeFunction(function: Expression, parameter: Expression) extends Expression
 
   // Variables
 
@@ -62,7 +62,7 @@ object Syntax {
 
   final case class UnitLiteral() extends Expression
 
-  final case class FunctionLiteral(formalParameters: List[(Symbol, TypeName)], body: Expression) extends Expression
+  final case class FunctionLiteral(sym: Symbol, ty: TypeReference, body: Expression) extends Expression
 
   // Record operations
 

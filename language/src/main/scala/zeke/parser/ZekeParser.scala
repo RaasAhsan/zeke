@@ -25,8 +25,8 @@ object ZekeParser {
     def keyword: Parser[Unit] =
       identifier.filter(_ == "record").void
 
-    def field: Parser[(Symbol, TypeName)] =
-      pairBy(symbol, colon, typeName)
+    def field: Parser[(Symbol, TypeReference)] =
+      pairBy(symbol, colon, typeReference)
 
     keyword ~> (typeName, withBraces(sepBy(field, comma))).mapN { (name, fields) =>
       RecordDeclaration(name, fields)
@@ -76,16 +76,15 @@ object ZekeParser {
       }
     }
 
-  def callExpression: Parser[Expression] = {
-    (primary, withParens(sepBy(expression, comma)).many).mapN { (k, ks) =>
-      ks.foldLeft(k) { case (acc, exprs) =>
-        InvokeFunction(acc, exprs)
+  def callExpression: Parser[Expression] =
+    (primary, withParens(expression).many).mapN { (k, ks) =>
+      ks.foldLeft(k) { case (acc, expr) =>
+        InvokeFunction(acc, expr)
       }
     }
-  }
 
   def primary: Parser[Expression] =
-    booleanLiteral | integerLiteral | stringLiteralP | functionLiteral | recordLiteral | variableExpression | withParens(expression)
+    booleanLiteral | integerLiteral | stringLiteralP | functionLiteral | recordLiteral | unitLiteral | variableExpression | withParens(expression)
 
   def integerLiteral: Parser[IntLiteral] =
     token(int.map(IntLiteral(_)))
@@ -102,15 +101,19 @@ object ZekeParser {
     a1 | a2
   }
 
+  def unitLiteral: Parser[UnitLiteral] =
+    identifier.filter(_ == "unit").as(UnitLiteral())
+
+  // TODO: add explicit return type here
   def functionLiteral: Parser[FunctionLiteral] = {
     def keyword: Parser[Unit] =
       identifier.filter(_ == "fun").void
 
-    def field: Parser[(Symbol, TypeName)] =
-      pairBy(symbol, colon, typeName)
+    def field: Parser[(Symbol, TypeReference)] =
+      pairBy(symbol, colon, typeReference)
 
-    keyword ~> (withParens(sepBy(field, comma)), withBraces(expression)).mapN { (parameters, body) =>
-      FunctionLiteral(parameters, body)
+    keyword ~> (withParens(field), withBraces(expression)).mapN { (param, body) =>
+      FunctionLiteral(param._1, param._2, body)
     }
   }
 
@@ -125,6 +128,19 @@ object ZekeParser {
     (expression <~ dot, symbol).mapN(RecordProjection(_, _))
 
   // Identifiers
+
+  def typeReference: Parser[TypeReference] = {
+    def functionType: Parser[TypeReference] =
+      (primary, (arrow ~> primary).many).mapN { (k, ks) =>
+        val all = k :: ks
+        all.reduceRight((next, acc) => TypeReference.Function(next, acc))
+      }
+
+    def primary: Parser[TypeReference] =
+      typeName.map(TypeReference.Name(_))
+
+    functionType
+  }
 
   def typeName: Parser[TypeName] =
     identifier.map(TypeName(_))
@@ -143,6 +159,9 @@ object ZekeParser {
 
   def equalsOp: Parser[Unit] =
     op.filter(_ == "=").void
+
+  def arrow: Parser[Unit] =
+    op.filter(_ == "->").void
 
   def plus: Parser[Unit] =
     op.filter(_ == "+").void

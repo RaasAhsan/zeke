@@ -37,7 +37,7 @@ object TypeChecker {
           val projTypes = projDistinct.foldLeft[Either[String, Map[Symbol, Type]]](Right(Map())) { case (acc, (symbol, typeName)) =>
             for {
               map <- acc
-              ty <- ctx.getTypeForName(typeName) match {
+              ty <- ctx.getTypeByReference(typeName) match {
                 case Some(ty) => Right(ty)
                 case None => Left("type not found")
               }
@@ -67,13 +67,12 @@ object TypeChecker {
       case IntLiteral(_) => Right(Typing(IntType, ctx))
       case StringLiteral(_) => Right(Typing(StringType, ctx))
       case BooleanLiteral(_) => Right(Typing(BooleanType, ctx))
-      case FunctionLiteral(params, body) =>
+      case FunctionLiteral(sym, tr, body) =>
         for {
-          ptys <- params.map { case (symbol, typeName) =>
-            ctx.getTypeForName(typeName).fold[Either[String, (Symbol, Type)]](Left("type not found"))(ty => Right(symbol -> ty))
-          }.sequence
-          rty <- typecheckExpression(body, ctx.addVariableBindings(ptys))
-        } yield Typing(FunctionType(ptys.map(_._2), rty.ty), ctx) // TODO: in the future when methods exist, add it to a context?
+          ty <- ctx.getTypeByReference(tr).fold[Either[String, Type]](Left("type not found"))(Right(_))
+          rty <- typecheckExpression(body, ctx.addVariableBinding(sym, ty))
+        } yield Typing(FunctionType(ty, rty.ty), ctx) // TODO: in the future when methods exist, add it to a context?
+      case UnitLiteral() => Right(Typing(UnitType, ctx))
 
       // Arithmetic expressions
       case Add(left, right) =>
@@ -120,7 +119,7 @@ object TypeChecker {
       // Records
       case RecordLiteral(name, values) =>
         for {
-          ty <- ctx.getTypeForName(name) match {
+          ty <- ctx.getTypeByName(name) match {
             case Some(ty) => Right(ty)
             case None => Left (s"unknown type $name")
           }
@@ -142,16 +141,16 @@ object TypeChecker {
           }
         } yield Typing(pty, ctx)
 
-      case InvokeFunction(function, arguments) =>
+      case InvokeFunction(function, param) =>
         for {
           typ <- typecheckExpression(function, ctx)
           fty <- typ.ty match {
             case f: FunctionType => Right(f)
             case _ => Left("function type not found")
           }
-          ptys <- arguments.map(e => typecheckExpression(e, ctx)).sequence
-          _ <- if (fty.argumentTypes == ptys.map(_.ty)) Right(()) else Left("parameter types on functional call did not match")
-        } yield Typing(fty.returnType, ctx)
+          pty <- typecheckExpression(param, ctx)
+          _ <- if (fty.in == pty.ty) Right(()) else Left(s"expected: ${fty.in}, actual: ${pty.ty}")
+        } yield Typing(fty.out, ctx)
 
       case _ => Left(s"no typing rules for $term")
     }

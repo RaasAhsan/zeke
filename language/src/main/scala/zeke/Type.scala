@@ -12,7 +12,7 @@ object Type {
 
   case object UnitType extends Type
 
-  final case class FunctionType(argumentTypes: List[Type], returnType: Type) extends Type
+  final case class FunctionType(in: Type, out: Type) extends Type
 
   final case class RecordType(name: TypeName, projections: Map[Symbol, Type]) extends Type
 

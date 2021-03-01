@@ -49,16 +49,31 @@ object Launcher {
         |
         |let z = (4 + 3) * 5
         |
-        |let f = fun(x: int, y: int) {
-        |  x + y
+        |let f = fun(x: int) {
+        |  x
         |}
         |
-        |let g = fun(x: int, y: int) {
-        |  x + y + z
+        |let add = fun(x: int) {
+        |  fun(y: int) {
+        |    x + y
+        |  }
         |}
         |
-        |f( 3, 4)
-        |g(1, 2)
+        |let apply = fun(f: int -> int -> int) {
+        |  fun(x: int) {
+        |    fun(y: int) {
+        |      f(x)(y)
+        |    }
+        |  }
+        |}
+        |
+        |let thunk = fun(x: unit) {
+        |  3
+        |}
+        |
+        |add(2)(3)
+        |apply(add)(2)(3)
+        |thunk(unit)
         |
         |""".stripMargin
 
