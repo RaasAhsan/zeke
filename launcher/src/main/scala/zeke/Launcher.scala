@@ -75,6 +75,14 @@ object Launcher {
         |apply(add)(2)(3)
         |thunk(unit)
         |
+        |let idInt = fun(fi: (int -> int) -> int -> int) {
+        |  fi(f)
+        |}
+        |
+        |let getPersonName = fun(p: Person) {
+        |  p.name
+        |}
+        |
         |""".stripMargin
 
     println(input)

@@ -137,6 +137,9 @@ object ZekeParser {
       }
 
     def primary: Parser[TypeReference] =
+      typeReferenceByName | withParens(typeReference)
+
+    def typeReferenceByName: Parser[TypeReference] =
       typeName.map(TypeReference.Name(_))
 
     functionType
