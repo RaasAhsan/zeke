@@ -16,4 +16,6 @@ object Type {
 
   final case class RecordType(name: TypeName, projections: Map[Symbol, Type]) extends Type
 
+  final case class VariantType(name: TypeName, members: Map[TypeName, Type]) extends Type
+
 }
