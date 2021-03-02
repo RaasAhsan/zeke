@@ -82,7 +82,7 @@ object ZekeParser {
   def callExpression: Parser[Expression] =
     (primary, withParens(expression).many).mapN { (k, ks) =>
       ks.foldLeft(k) { case (acc, expr) =>
-        InvokeFunction(acc, expr)
+        FunctionApply(acc, expr)
       }
     }
 

@@ -24,7 +24,7 @@ object Syntax {
 
   // Functions
 
-  final case class InvokeFunction(function: Expression, parameter: Expression) extends Expression
+  final case class FunctionApply(function: Expression, parameter: Expression) extends Expression
 
   // Variables
 

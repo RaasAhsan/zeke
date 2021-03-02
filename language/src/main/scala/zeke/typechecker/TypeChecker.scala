@@ -157,7 +157,7 @@ object TypeChecker {
           }
         } yield Typing(pty, ctx)
 
-      case InvokeFunction(function, param) =>
+      case FunctionApply(function, param) =>
         for {
           typ <- typecheckExpression(function, ctx)
           fty <- typ.ty match {
