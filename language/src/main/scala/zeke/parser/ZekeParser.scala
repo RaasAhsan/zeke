@@ -19,7 +19,7 @@ object ZekeParser {
     (many(typeDeclaration), many((endOfInput ~> err[Statement]("end")) | statement)).mapN((decls, statements) => Program(decls, statements))
 
   def typeDeclaration: Parser[TypeDeclaration] =
-    recordDeclaration
+    recordDeclaration | variantDeclaration
 
   def recordDeclaration: Parser[RecordDeclaration] = {
     def keyword: Parser[Unit] =
@@ -30,6 +30,18 @@ object ZekeParser {
 
     keyword ~> (typeName, withBraces(sepBy(field, comma))).mapN { (name, fields) =>
       RecordDeclaration(name, fields)
+    }
+  }
+
+  def variantDeclaration: Parser[VariantDeclaration] = {
+    def keyword: Parser[Unit] =
+      identifier.filter(_ == "variant").void
+
+    def member: Parser[(TypeName, TypeReference)] =
+      typeName ~ withParens(typeReference)
+
+    keyword ~> (typeName, withBraces(sepBy(member, comma))).mapN { (name, members) =>
+      VariantDeclaration(name, members)
     }
   }
 
@@ -87,7 +99,7 @@ object ZekeParser {
     }
 
   def primary: Parser[Expression] =
-    booleanLiteral | integerLiteral | stringLiteralP | functionLiteral | recordLiteral | unitLiteral | variableExpression | withParens(expression)
+    booleanLiteral | integerLiteral | stringLiteralP | functionLiteral | variantLiteral | recordLiteral | unitLiteral | variableExpression | withParens(expression)
 
   def integerLiteral: Parser[IntLiteral] =
     token(int.map(IntLiteral(_)))
@@ -131,6 +143,12 @@ object ZekeParser {
 
   def recordProjection: Parser[RecordProjection] =
     (expression <~ dot, symbol).mapN(RecordProjection(_, _))
+
+  def variantLiteral: Parser[VariantLiteral] = {
+    def doubleColon: Parser[Unit] = op.filter(_ == "::").void
+
+    (typeName <~ doubleColon, typeName, withParens(expression)).mapN(VariantLiteral(_, _, _))
+  }
 
   // Identifiers
 
