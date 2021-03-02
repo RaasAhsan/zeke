@@ -42,8 +42,11 @@ object ZekeParser {
     def keyword: Parser[Unit] =
       identifier.filter(_ == "let").void
 
-    (keyword ~> symbol, equalsOp ~> expression).mapN { (name, expr) =>
-      LetStatement(name, expr)
+    def letType: Parser[Option[TypeName]] =
+      opt(colon ~> typeName)
+
+    (keyword ~> symbol, letType, equalsOp ~> expression).mapN { (name, maybeType, expr) =>
+      LetStatement(name, maybeType, expr)
     }
   }
 
@@ -104,7 +107,6 @@ object ZekeParser {
   def unitLiteral: Parser[UnitLiteral] =
     identifier.filter(_ == "unit").as(UnitLiteral())
 
-  // TODO: add explicit return type here
   def functionLiteral: Parser[FunctionLiteral] = {
     def keyword: Parser[Unit] =
       identifier.filter(_ == "fun").void
@@ -112,8 +114,11 @@ object ZekeParser {
     def field: Parser[(Symbol, TypeReference)] =
       pairBy(symbol, colon, typeReference)
 
-    keyword ~> (withParens(field), withBraces(expression)).mapN { (param, body) =>
-      FunctionLiteral(param._1, param._2, body)
+    def returnType: Parser[Option[TypeName]] =
+      opt(colon ~> typeName)
+
+    keyword ~> (withParens(field), returnType, withBraces(expression)).mapN { (param, rty, body) =>
+      FunctionLiteral(param._1, param._2, rty, body)
     }
   }
 

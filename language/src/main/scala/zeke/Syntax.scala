@@ -12,7 +12,7 @@ object Syntax {
 
   sealed trait Statement
 
-  final case class LetStatement(name: Symbol, value: Expression) extends Statement
+  final case class LetStatement(name: Symbol, maybeType: Option[TypeName], value: Expression) extends Statement
 
   final case class ExpressionStatement(expr: Expression) extends Statement
 
@@ -62,7 +62,7 @@ object Syntax {
 
   final case class UnitLiteral() extends Expression
 
-  final case class FunctionLiteral(sym: Symbol, ty: TypeReference, body: Expression) extends Expression
+  final case class FunctionLiteral(sym: Symbol, ty: TypeReference, returnType: Option[TypeName], body: Expression) extends Expression
 
   // Record operations
 

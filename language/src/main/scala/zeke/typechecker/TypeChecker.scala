@@ -56,8 +56,17 @@ object TypeChecker {
   def typecheckStatement(term: Statement, ctx: TypingContext): TypeCheckResult =
     term match {
       case ExpressionStatement(expr) => typecheckExpression(expr, ctx)
-      case LetStatement(name, value) =>
-        typecheckExpression(value, ctx).map(ty => Typing(UnitType, ctx.addVariableBinding(name, ty.ty)))
+      case LetStatement(name, letType, value) =>
+        for {
+          ty <- typecheckExpression(value, ctx).map(ty => Typing(UnitType, ctx.addVariableBinding(name, ty.ty)))
+          _ <- letType match {
+            case Some(typeName) =>
+              ctx.getTypeByName(typeName).fold[Either[String, Unit]](Left("type not found")) { lty =>
+                if (ty.ty == lty) Right(()) else Left(s"$lty does not match expected type $ty")
+              }
+            case None => Right(())
+          }
+        } yield ty
     }
 
   // type checking algorithm follows from inversion lemma
@@ -67,10 +76,17 @@ object TypeChecker {
       case IntLiteral(_) => Right(Typing(IntType, ctx))
       case StringLiteral(_) => Right(Typing(StringType, ctx))
       case BooleanLiteral(_) => Right(Typing(BooleanType, ctx))
-      case FunctionLiteral(sym, tr, body) =>
+      case FunctionLiteral(sym, tr, returnType, body) =>
         for {
           ty <- ctx.getTypeByReference(tr).fold[Either[String, Type]](Left("type not found"))(Right(_))
           rty <- typecheckExpression(body, ctx.addVariableBinding(sym, ty))
+          _ <- returnType match {
+            case Some(typeName) =>
+              ctx.getTypeByName(typeName).fold[Either[String, Unit]](Left("type not found")) { lty =>
+                if (rty.ty == lty) Right(()) else Left(s"$lty does not match expected type $ty")
+              }
+            case None => Right(())
+          }
         } yield Typing(FunctionType(ty, rty.ty), ctx) // TODO: in the future when methods exist, add it to a context?
       case UnitLiteral() => Right(Typing(UnitType, ctx))
 
