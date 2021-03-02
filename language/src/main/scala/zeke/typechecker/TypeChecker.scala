@@ -62,7 +62,7 @@ object TypeChecker {
           _ <- letType match {
             case Some(typeName) =>
               ctx.getTypeByName(typeName).fold[Either[String, Unit]](Left("type not found")) { lty =>
-                if (ty.ty == lty) Right(()) else Left(s"$lty does not match expected type $ty")
+                assertTypesEqual(ty.ty, lty)
               }
             case None => Right(())
           }
@@ -83,7 +83,7 @@ object TypeChecker {
           _ <- returnType match {
             case Some(typeName) =>
               ctx.getTypeByName(typeName).fold[Either[String, Unit]](Left("type not found")) { lty =>
-                if (rty.ty == lty) Right(()) else Left(s"$lty does not match expected type $ty")
+                assertTypesEqual(rty.ty, lty)
               }
             case None => Right(())
           }

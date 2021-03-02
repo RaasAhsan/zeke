@@ -10,6 +10,8 @@ object Syntax {
 
   final case class RecordDeclaration(name: TypeName, projections: List[(Symbol, TypeReference)]) extends TypeDeclaration
 
+  final case class VariantDeclaration(name: TypeName, members: List[(TypeName, TypeReference)]) extends TypeDeclaration
+
   sealed trait Statement
 
   final case class LetStatement(name: Symbol, maybeType: Option[TypeName], value: Expression) extends Statement
@@ -69,5 +71,9 @@ object Syntax {
   final case class RecordLiteral(typeName: TypeName, values: List[(Symbol, Expression)]) extends Expression
 
   final case class RecordProjection(expr: Expression, projection: Symbol) extends Expression
+
+  // Variant operations
+
+  final case class VariantLiteral(typeName: TypeName, value: Expression) extends Expression
 
 }
