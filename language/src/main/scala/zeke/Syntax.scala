@@ -74,6 +74,6 @@ object Syntax {
 
   // Variant operations
 
-  final case class VariantLiteral(typeName: TypeName, value: Expression) extends Expression
+  final case class VariantLiteral(typeName: TypeName, memberName: TypeName, value: Expression) extends Expression
 
 }

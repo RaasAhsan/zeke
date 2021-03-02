@@ -1,9 +1,7 @@
 package zeke.typechecker
 
 import cats.syntax.all._
-import zeke.Type
-import zeke.Syntax
-import zeke.Symbol
+import zeke.{Symbol, Syntax, Type, TypeName}
 
 object TypeChecker {
 
@@ -32,23 +30,28 @@ object TypeChecker {
   def typecheckTypeDeclaration(term: TypeDeclaration, ctx: TypingContext): TypeCheckResult = {
     term match {
       case RecordDeclaration(name, projections) =>
-        val projDistinct = projections.distinctBy(_._1)
-        if (projDistinct.size == projections.distinct.length) {
-          val projTypes = projDistinct.foldLeft[Either[String, Map[Symbol, Type]]](Right(Map())) { case (acc, (symbol, typeName)) =>
-            for {
-              map <- acc
-              ty <- ctx.getTypeByReference(typeName) match {
-                case Some(ty) => Right(ty)
-                case None => Left("type not found")
-              }
-            } yield map + (symbol -> ty)
-          }
+        if (projections.distinctBy(_._1).size == projections.length) {
+          val projTypes = projections.map { case (symbol, typeRef) =>
+            ctx.getTypeByReference(typeRef).fold[Either[String, (Symbol, Type)]](Left("type not found"))(ty => Right(symbol -> ty))
+          }.sequence
           projTypes.map { types =>
-            val ty = RecordType(name, types)
+            val ty = RecordType(name, types.toMap)
             Typing(ty, ctx.addTypeDeclaration(name, ty))
           }
         } else {
           Left(s"same field name was declared in record $name")
+        }
+      case VariantDeclaration(name, members) =>
+        if (members.distinctBy(_._1).size == members.length) {
+          val memberTypes = members.map { case (typeName, typeRef) =>
+            ctx.getTypeByReference(typeRef).fold[Either[String, (TypeName, Type)]](Left("type not found"))(ty => Right(typeName -> ty))
+          }.sequence
+          memberTypes.map { types =>
+            val ty = VariantType(name, types.toMap)
+            Typing(ty, ctx.addTypeDeclaration(name, ty))
+          }
+        } else {
+          Left(s"same member name was declared more than once in record $name")
         }
     }
   }
@@ -157,6 +160,20 @@ object TypeChecker {
           }
         } yield Typing(pty, ctx)
 
+      // Variants
+
+      case VariantLiteral(typeName, memberName, value) =>
+        for {
+          ty <- ctx.getTypeByName(typeName) match {
+            case Some(ty) => Right(ty)
+            case None => Left (s"unknown type $typeName")
+          }
+          vty <- assertVariantType(ty)
+          ety <- vty.members.get(memberName).fold[Either[String, Type]](Left(s"invalid variant $memberName"))(Right(_))
+          bty <- typecheckExpression(value, ctx)
+          _ <- if (ety == bty.ty) Right(()) else Left("variant type doesn't match")
+        } yield Typing(vty, ctx)
+
       case FunctionApply(function, param) =>
         for {
           typ <- typecheckExpression(function, ctx)
@@ -179,6 +196,12 @@ object TypeChecker {
     ty match {
       case r @ RecordType(_, _) => Right(r)
       case _ => Left("not a record")
+    }
+
+  private def assertVariantType(ty: Type): Either[String, VariantType] =
+    ty match {
+      case v @ VariantType(_, _) => Right(v)
+      case _ => Left("not a variant")
     }
 
 }
