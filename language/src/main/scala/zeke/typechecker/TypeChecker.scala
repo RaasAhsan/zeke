@@ -61,15 +61,15 @@ object TypeChecker {
       case ExpressionStatement(expr) => typecheckExpression(expr, ctx)
       case LetStatement(name, letType, value) =>
         for {
-          ty <- typecheckExpression(value, ctx).map(ty => Typing(UnitType, ctx.addVariableBinding(name, ty.ty)))
+          ty <- typecheckExpression(value, ctx)
           _ <- letType match {
             case Some(typeName) =>
-              ctx.getTypeByName(typeName).fold[Either[String, Unit]](Left("type not found")) { lty =>
+              ctx.getTypeByName(typeName).fold[Either[String, Unit]](Left(s"type ${typeName} not found")) { lty =>
                 assertTypesEqual(ty.ty, lty)
               }
             case None => Right(())
           }
-        } yield ty
+        } yield Typing(UnitType, ctx.addVariableBinding(name, ty.ty))
     }
 
   // type checking algorithm follows from inversion lemma
@@ -171,7 +171,7 @@ object TypeChecker {
           vty <- assertVariantType(ty)
           ety <- vty.members.get(memberName).fold[Either[String, Type]](Left(s"invalid variant $memberName"))(Right(_))
           bty <- typecheckExpression(value, ctx)
-          _ <- if (ety == bty.ty) Right(()) else Left("variant type doesn't match")
+          _ <- assertTypesEqual(bty.ty, ety)
         } yield Typing(vty, ctx)
 
       case FunctionApply(function, param) =>

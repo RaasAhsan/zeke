@@ -29,59 +29,13 @@ object Launcher {
         |
         |record Empty{}
         |
-        |let x = true
-        |let y = Pair {
-        |  first: 34,
-        |  second: 54
+        |variant OptionInt {
+        |  Some(int),
+        |  None(unit)
         |}
         |
-        |let z = PairOfPair {
-        |  first: y,
-        |  second: y
-        |}
-        |
-        |let a = z.first.first
-        |let e = Empty {}
-        |let p = Person {
-        |  name: "Jimmy",
-        |  age: 23
-        |}
-        |
-        |let z = (4 + 3) * 5
-        |
-        |let f = fun(x: int) {
-        |  x
-        |}
-        |
-        |let add = fun(x: int) {
-        |  fun(y: int) {
-        |    x + y
-        |  }
-        |}
-        |
-        |let apply = fun(f: int -> int -> int) {
-        |  fun(x: int) {
-        |    fun(y: int) {
-        |      f(x)(y)
-        |    }
-        |  }
-        |}
-        |
-        |let thunk = fun(x: unit) {
-        |  3
-        |}
-        |
-        |add(2)(3)
-        |apply(add)(2)(3)
-        |thunk(unit)
-        |
-        |let idInt = fun(fi: (int -> int) -> int -> int) {
-        |  fi(f)
-        |}
-        |
-        |let getPersonName = fun(p: Person) {
-        |  p.name
-        |}
+        |let x: OptionInt = OptionInt::Some(3)
+        |let y = OptionInt::None(unit)
         |
         |""".stripMargin
 

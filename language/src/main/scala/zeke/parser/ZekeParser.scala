@@ -144,11 +144,8 @@ object ZekeParser {
   def recordProjection: Parser[RecordProjection] =
     (expression <~ dot, symbol).mapN(RecordProjection(_, _))
 
-  def variantLiteral: Parser[VariantLiteral] = {
-    def doubleColon: Parser[Unit] = op.filter(_ == "::").void
-
+  def variantLiteral: Parser[VariantLiteral] =
     (typeName <~ doubleColon, typeName, withParens(expression)).mapN(VariantLiteral(_, _, _))
-  }
 
   // Identifiers
 
@@ -179,6 +176,9 @@ object ZekeParser {
 
   def colon: Parser[String] =
     token(string(":"))
+
+  def doubleColon: Parser[String] =
+    token(string("::"))
 
   def comma: Parser[String] =
     token(string(","))
