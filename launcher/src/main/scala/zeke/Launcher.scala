@@ -39,7 +39,7 @@ object Launcher {
         |
         |let z = match x {
         |  case Some(a) => a,
-        |  case None(x) => x
+        |  case None(x) => 0
         |}
         |
         |""".stripMargin

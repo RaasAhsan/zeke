@@ -207,6 +207,7 @@ object TypeChecker {
             }
             typecheckExpression(expr, nextCtx)
           }.sequence
+          _ <- if (ctys.map(_.ty).toSet.size == 1) Right(()) else Left("Branch types must match")
         } yield Typing(ctys.head.ty, ctx)
 
       case FunctionApply(function, param) =>
