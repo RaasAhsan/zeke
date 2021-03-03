@@ -99,7 +99,7 @@ object ZekeParser {
     }
 
   def primary: Parser[Expression] =
-    booleanLiteral | integerLiteral | stringLiteralP | functionLiteral | variantLiteral | recordLiteral | unitLiteral | variableExpression | withParens(expression)
+    booleanLiteral | integerLiteral | stringLiteralP | functionLiteral | variantLiteral | matchExpression | recordLiteral | unitLiteral | variableExpression | withParens(expression)
 
   def integerLiteral: Parser[IntLiteral] =
     token(int.map(IntLiteral(_)))
@@ -147,6 +147,25 @@ object ZekeParser {
   def variantLiteral: Parser[VariantLiteral] =
     (typeName <~ doubleColon, typeName, withParens(expression)).mapN(VariantLiteral(_, _, _))
 
+  def matchExpression: Parser[Expression] = {
+    def keyword: Parser[Unit] = identifier.filter(_ == "match").void
+    def arrow: Parser[Unit] = op.filter(_ == "=>").void
+
+    def caseClause: Parser[(Pattern, Expression)] = (pattern <~ arrow) ~ expression
+
+    (keyword ~> expression, withBraces(sepBy(caseClause, comma))).mapN(Match(_, _))
+  }
+
+  def pattern: Parser[Pattern] = {
+    def keyword: Parser[Unit] = identifier.filter(_ == "case").void
+    def member: Parser[Pattern] =
+      (keyword ~> typeName, withParens(symbol)).mapN(MemberPattern(_, _))
+    def wildcard: Parser[Pattern] =
+      (keyword ~> underscore).as(WildcardPattern)
+
+    member | wildcard
+  }
+
   // Identifiers
 
   def typeReference: Parser[TypeReference] = {
@@ -183,6 +202,9 @@ object ZekeParser {
   def comma: Parser[String] =
     token(string(","))
 
+  def underscore: Parser[Unit] =
+    token(string("_")).void
+
   def equalsOp: Parser[Unit] =
     op.filter(_ == "=").void
 
@@ -197,6 +219,7 @@ object ZekeParser {
 
   def star: Parser[Unit] =
     op.filter(_ == "*").void
+
 
   def op: Parser[String] =
     token(stringOf1(oneOf("=+<>*-/")))
