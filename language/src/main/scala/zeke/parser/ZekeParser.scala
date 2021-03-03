@@ -16,7 +16,7 @@ object ZekeParser {
     skipWhitespace ~> program <~ endOfInput
 
   def program: Parser[Program] =
-    (many(typeDeclaration), many((endOfInput ~> err[Statement]("end")) | statement)).mapN((decls, statements) => Program(decls, statements))
+    (many(typeDeclaration), many(statement)).mapN((decls, statements) => Program(decls, statements))
 
   def typeDeclaration: Parser[TypeDeclaration] =
     recordDeclaration | variantDeclaration
@@ -99,7 +99,7 @@ object ZekeParser {
     }
 
   def primary: Parser[Expression] =
-    booleanLiteral | integerLiteral | stringLiteralP | functionLiteral | variantLiteral | matchExpression | recordLiteral | unitLiteral | variableExpression | withParens(expression)
+    booleanLiteral | integerLiteral | stringLiteralP | functionLiteral | matchExpression | variantLiteral | recordLiteral | unitLiteral | variableExpression | withParens(expression)
 
   def integerLiteral: Parser[IntLiteral] =
     token(int.map(IntLiteral(_)))
@@ -235,6 +235,7 @@ object ZekeParser {
     bracket(token(string("(")), p, token(string(")")))
 
   def debug = get.map(x => {
+    println("-------")
     println(x)
     println(x.length)
     ()

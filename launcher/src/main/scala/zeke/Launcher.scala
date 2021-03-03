@@ -37,6 +37,11 @@ object Launcher {
         |let x: OptionInt = OptionInt::Some(3)
         |let y = OptionInt::None(unit)
         |
+        |let z = match x {
+        |  case Some(a) => a,
+        |  case None(x) => x
+        |}
+        |
         |""".stripMargin
 
     println(input)
