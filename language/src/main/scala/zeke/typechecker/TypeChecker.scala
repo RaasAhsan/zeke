@@ -174,6 +174,41 @@ object TypeChecker {
           _ <- assertTypesEqual(bty.ty, ety)
         } yield Typing(vty, ctx)
 
+      case Match(expr, clauses) =>
+        for {
+          ety <- typecheckExpression(expr, ctx)
+          vty <- assertVariantType(ety.ty)
+          _ <- if (clauses.length == 0) Left("need at least one clause") else Right(())
+          _ <- {
+            val matchedMembers = clauses.collect {
+              case (MemberPattern(typeName, _), _) => typeName
+            }
+            if (matchedMembers.distinct.length == matchedMembers.length) {
+              val s1 = matchedMembers.toSet
+              val s2 = vty.members.keySet
+              if (s1 == s2) {
+                clauses.find(_._1 == WildcardPattern).fold[Either[String, Unit]](Right(()))(_ => Left("unneeded wildcard pattern"))
+              } else {
+                if (s1.subsetOf(s2)) {
+                  clauses.find(_._1 == WildcardPattern).fold[Either[String, Unit]](Left("need a wildcard case"))(_ => Right(()))
+                } else {
+                  Left("unknown variant case found")
+                }
+              }
+            } else {
+              Left("repeated match clause")
+            }
+          }
+          ctys <- clauses.map { case (pattern, expr) =>
+            val nextCtx = pattern match {
+              case MemberPattern(typeName, symbol) =>
+                ctx.addVariableBinding(symbol, vty.members.get(typeName).get) // TODO: fix this get
+              case WildcardPattern => ctx
+            }
+            typecheckExpression(expr, nextCtx)
+          }.sequence
+        } yield Typing(ctys.head.ty, ctx)
+
       case FunctionApply(function, param) =>
         for {
           typ <- typecheckExpression(function, ctx)
