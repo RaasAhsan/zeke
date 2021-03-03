@@ -24,6 +24,14 @@ object Syntax {
 
   final case class If(condition: Expression, consequent: Expression, alternative: Expression) extends Expression
 
+  final case class Match(expr: Expression, caseClauses: List[(Pattern, Expression)]) extends Expression
+
+  sealed trait Pattern
+
+  final case class MemberPattern(typeName: TypeName, name: Symbol) extends Pattern
+
+  case object WildcardPattern extends Pattern
+
   // Functions
 
   final case class FunctionApply(function: Expression, parameter: Expression) extends Expression
